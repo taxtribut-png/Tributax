@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TribuTax — Organização Tributária</title>
+<meta name="theme-color" content="#0e1621">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230e1621'/%3E%3Ctext x='50%25' y='56%25' font-size='34' text-anchor='middle' fill='%2334d399' font-family='Arial' font-weight='bold'%3ET%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#0d1420;--bg2:#0a1017;--card:#141c2a;--card2:#111826;--line:#232f42;
+  --ink:#e6edf5;--muted:#8b99ad;
+  --brand:#3b82f6;--brandSoft:#1e3a5f;--accent:#2dd4bf;
+  --in:#34d399;--out:#f0888b;--tax:#e0b877;--bal:#38bdf8;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:radial-gradient(1200px 600px at 80% -10%,#12243a 0%,transparent 55%),radial-gradient(900px 500px at -10% 110%,#0c2b28 0%,transparent 50%),var(--bg);color:var(--ink);min-height:100vh}
+a{color:var(--bal);text-decoration:none}a:hover{color:var(--accent)}
+.hidden{display:none!important}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:#26344a;border-radius:8px}
+.topbar{display:flex;align-items:center;gap:18px;background:rgba(16,23,35,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:12px 24px;position:sticky;top:0;z-index:20}
+.brand{font-size:20px;font-weight:800;color:var(--ink);cursor:pointer;letter-spacing:.3px}.brand span{color:var(--accent)}
+.topbar nav{display:flex;gap:4px;flex:1}
+.topbar nav button{background:none;border:0;color:var(--muted);font-weight:500;font-size:14px;padding:8px 13px;border-radius:9px;cursor:pointer;transition:.15s}
+.topbar nav button:hover{background:#1b2534;color:var(--ink)}
+.topbar nav button.active{background:linear-gradient(135deg,var(--brandSoft),#12312e);color:#fff}
+.topbar .who{color:var(--muted);font-size:13px}.topbar .logout{color:var(--out)!important}
+main{max-width:1060px;margin:26px auto;padding:0 20px}
+.auth-wrap{max-width:520px;margin:6vh auto}
+.foot{text-align:center;color:var(--muted);font-size:12px;padding:26px}
+.page-title{font-size:23px;margin:4px 0 20px;font-weight:700}
+.card{background:linear-gradient(180deg,var(--card),var(--card2));border:1px solid var(--line);border-radius:16px;padding:20px 22px;margin-bottom:20px;box-shadow:0 6px 24px rgba(0,0,0,.28)}
+.card h2{font-size:16px;margin:0 0 12px;font-weight:600}
+.logo{font-size:30px;font-weight:800;text-align:center;margin:0 0 4px}.logo span{color:var(--accent)}
+.muted{color:var(--muted);font-size:14px}
+label{display:block;margin:10px 0;font-size:13px;font-weight:500;color:var(--muted)}
+input,select{display:block;width:100%;margin-top:6px;padding:11px 13px;border:1px solid var(--line);border-radius:10px;font-size:14px;background:#0e1622;color:var(--ink);font-family:inherit}
+input:focus,select:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(59,130,246,.18)}
+select option{background:#0e1622}
+.check{display:flex;align-items:center;gap:8px;font-weight:400}.check input{width:auto;margin:0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 18px}
+@media(max-width:640px){.grid2{grid-template-columns:1fr}}
+.btn{display:inline-block;border:0;border-radius:10px;padding:11px 18px;font-size:14px;font-weight:600;cursor:pointer;background:#1e2836;color:var(--ink);margin-top:12px;transition:.15s}
+.btn:hover{filter:brightness(1.12)}
+.btn.primary{background:linear-gradient(135deg,var(--brand),#2563eb);color:#fff;box-shadow:0 4px 16px rgba(59,130,246,.3)}
+.btn.accent{background:linear-gradient(135deg,var(--accent),#14b8a6);color:#04201c;box-shadow:0 4px 16px rgba(45,212,191,.25)}
+.btn.danger{background:#3a1f26;color:var(--out)}.btn.ghost{background:transparent;border:1px solid var(--line)}
+.btn.sm{padding:6px 12px;font-size:13px;margin:0}
+.flash{padding:11px 14px;border-radius:10px;margin:10px 0;font-size:14px;border:1px solid transparent}
+.flash.success{background:#0f2a1e;color:#6ee7b7;border-color:#1c4a34}
+.flash.danger{background:#2a1518;color:#f7a5a8;border-color:#4a2328}
+.flash.warning{background:#2a2413;color:#e8cf8b;border-color:#4a3f1c}
+.flash.info{background:#101f30;color:#8ec5ff;border-color:#1e3a5f}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+@media(max-width:720px){.kpis{grid-template-columns:1fr 1fr}}
+.kpi{background:linear-gradient(180deg,var(--card),var(--card2));border:1px solid var(--line);border-left-width:4px;border-radius:14px;padding:15px 16px}
+.kpi span{display:block;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.5px}.kpi strong{font-size:21px}
+.kpi.in{border-left-color:var(--in)}.kpi.out{border-left-color:var(--out)}.kpi.tax{border-left-color:var(--tax)}.kpi.bal{border-left-color:var(--bal)}
+.kpi.in strong{color:var(--in)}.kpi.out strong{color:var(--out)}.kpi.tax strong{color:var(--tax)}.kpi.bal strong{color:var(--bal)}
+.charts{display:grid;grid-template-columns:1fr 1.4fr;gap:18px;margin-bottom:20px}
+@media(max-width:820px){.charts{grid-template-columns:1fr}}
+.table{width:100%;border-collapse:collapse;font-size:14px}
+.table th,.table td{text-align:left;padding:10px 10px;border-bottom:1px solid var(--line)}
+.table th{color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+.table .r{text-align:right}
+.table tr.clickable{cursor:pointer;transition:.12s}.table tr.clickable:hover{background:#18212f}
+.cat{border-radius:8px;padding:5px 8px;border:1px solid var(--line);font-size:13px;background:#0e1622;color:var(--ink)}
+.pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600}
+.pill.entrada{background:#0f2a1e;color:var(--in)}.pill.saida{background:#2a1518;color:var(--out)}.pill.tributo{background:#2a2413;color:var(--tax)}
+.badge{padding:3px 9px;border-radius:20px;font-size:12px}
+.badge.processado{background:#0f2a1e;color:#6ee7b7}.badge.processando{background:#2a2413;color:#e8cf8b}.badge.erro{background:#2a1518;color:#f7a5a8}
+.dropzone{border:2px dashed var(--line);border-radius:12px;padding:24px;text-align:center;color:var(--muted);cursor:pointer;transition:.15s;margin-top:6px}
+.dropzone:hover,.dropzone.drag{border-color:var(--accent);background:#0e1c1a;color:var(--ink)}
+.plan-badge{background:#12312e;color:var(--accent);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:600}
+.plan-badge.warn{background:#2a2413;color:var(--tax)}.plan-badge.exp{background:#2a1518;color:var(--out)}
+.banner{border-radius:12px;padding:14px 18px;margin-bottom:18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;border:1px solid transparent}
+.banner.trial{background:#101f30;border-color:#1e3a5f;color:#8ec5ff}
+.banner.expired{background:#241a12;border-color:#4a3820;color:#e8b98b}
+.banner .btn{margin:0}
+.plans-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:8px 0}
+@media(max-width:820px){.plans-grid{grid-template-columns:1fr}}
+.plan{background:linear-gradient(180deg,var(--card),var(--card2));border:1px solid var(--line);border-radius:18px;padding:24px;text-align:center;position:relative;transition:transform .12s,box-shadow .12s}
+.plan:hover{transform:translateY(-4px);box-shadow:0 14px 34px rgba(0,0,0,.4)}
+.plan.featured{border-color:var(--accent);box-shadow:0 10px 30px rgba(45,212,191,.14)}
+.plan .tag{position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--brand),var(--accent));color:#04201c;font-size:11px;font-weight:800;padding:4px 13px;border-radius:20px}
+.plan h3{margin:6px 0 2px;font-size:18px}
+.plan .period{color:var(--muted);font-size:13px}
+.plan .price{font-size:32px;font-weight:800;margin:12px 0 2px;color:#fff}.plan .price small{font-size:14px;color:var(--muted);font-weight:500}
+.plan .permo{color:var(--accent);font-size:12px;margin-bottom:12px}
+.plan ul{list-style:none;padding:0;margin:14px 0;text-align:left;font-size:13px;color:var(--ink)}
+.plan ul li{padding:6px 0;border-bottom:1px solid var(--line)}.plan ul li:before{content:'\2713 ';color:var(--in);font-weight:700}
+.plan .btn{width:100%}
+.trial-box{background:#0e1c1a;border:1px dashed #1c4a44;border-radius:12px;padding:16px;text-align:center;color:#6ee7b7}
+.cc-preview{background:linear-gradient(135deg,#12314e,#0d3a37);color:#fff;border-radius:14px;padding:18px;margin-bottom:16px;font-family:monospace;border:1px solid var(--line)}
+.cc-preview .num{font-size:18px;letter-spacing:2px;margin:14px 0 10px}
+.cc-preview .row{display:flex;justify-content:space-between;font-size:12px;opacity:.9}
+.secure-note{font-size:12px;color:var(--muted);margin-top:8px}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid #2a3648;border-top-color:var(--accent);border-radius:50%;animation:sp .8s linear infinite;vertical-align:middle}
+@keyframes sp{to{transform:rotate(360deg)}}
+.hero{background:linear-gradient(135deg,#12314e,#0d3a37);border:1px solid var(--line);border-radius:16px;padding:26px;margin-bottom:18px}
+.hero h1{margin:0 0 6px;font-size:22px}.hero p{margin:0;color:var(--muted)}
+/* modal de detalhe do lancamento */
+.modal-bg{position:fixed;inset:0;background:rgba(4,8,14,.72);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;z-index:50;padding:18px}
+.modal{background:linear-gradient(180deg,var(--card),var(--card2));border:1px solid var(--line);border-radius:18px;max-width:460px;width:100%;padding:24px;box-shadow:0 24px 60px rgba(0,0,0,.55)}
+.modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.modal-head h2{margin:0;font-size:17px}
+.modal .close{background:none;border:0;color:var(--muted);font-size:22px;cursor:pointer;line-height:1}
+.modal .big-val{font-size:34px;font-weight:800;margin:6px 0 4px}
+.detail-list{margin:14px 0;border-top:1px solid var(--line)}
+.detail-list .row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px;gap:14px}
+.detail-list .row .k{color:var(--muted)}.detail-list .row .v{text-align:right;font-weight:500;word-break:break-word}
+.install-fab{position:fixed;right:20px;bottom:20px;z-index:30}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="modal-root"></div>
+<canvas id="__pdfcanvas" class="hidden"></canvas>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.0/dist/tesseract.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script>
+/* TribuTax — versão site (100% no navegador).
+ * Contas, documentos e lançamentos ficam isolados por conta no localStorage
+ * do próprio navegador. Leitura automática: TXT/CSV nativo, PDF via pdf.js,
+ * imagens via Tesseract.js (OCR). Gráficos com Chart.js, relatório em .zip.
+ * Aviso: por ser um protótipo estático, a "autenticação" é apenas local e
+ * NÃO oferece segurança real — use a versão com backend para produção. */
+'use strict';
+
+// ---------- util ----------
+const $ = (s, r = document) => r.querySelector(s);
+const el = (t, a = {}, ...kids) => {
+  const n = document.createElement(t);
+  for (const k in a) {
+    if (k === 'class') n.className = a[k];
+    else if (k === 'html') n.innerHTML = a[k];
+    else if (k.startsWith('on') && typeof a[k] === 'function') n.addEventListener(k.slice(2), a[k]);
+    else if (a[k] != null) n.setAttribute(k, a[k]);
+  }
+  for (const c of kids) { if (c == null) continue; n.append(c.nodeType ? c : document.createTextNode(c)); }
+  return n;
+};
+function esc(s){ const d=document.createElement('div'); d.textContent=(s==null?'':String(s)); return d.innerHTML; }
+const brl = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+const money = v => brl.format(Number(v) || 0);
+let flashMsg = null;
+function flash(text, type = 'info') { flashMsg = { text, type }; }
+
+// ---------- hash simples (nao é segurança real, só evita texto puro) ----------
+async function sha256(str) {
+  if (window.crypto && crypto.subtle) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+  // fallback (djb2) para contextos sem crypto.subtle
+  let h = 5381; for (let i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) >>> 0;
+  return 'fb' + h.toString(16);
+}
+
+// ---------- storage (isolado por conta) ----------
+const DB = {
+  users() { return JSON.parse(localStorage.getItem('tt_users') || '{}'); },
+  saveUsers(u) { localStorage.setItem('tt_users', JSON.stringify(u)); },
+  session() { return localStorage.getItem('tt_session'); },
+  setSession(email) { email ? localStorage.setItem('tt_session', email) : localStorage.removeItem('tt_session'); },
+  _key(email) { return 'tt_data_' + email; },
+  data(email) { return JSON.parse(localStorage.getItem(this._key(email)) || '{"docs":[],"txs":[],"seq":1}'); },
+  saveData(email, d) { localStorage.setItem(this._key(email), JSON.stringify(d)); },
+};
+function currentUser() {
+  const e = DB.session(); if (!e) return null;
+  return DB.users()[e] || null;
+}
+function saveUser(user) { const u = DB.users(); u[user.email] = user; DB.saveUsers(u); }
+
+// ---------- planos / assinatura ----------
+const TRIAL_DAYS = 3;
+const DAY = 86400000;
+const PLANS = [
+  { id: '1m', months: 1, price: 50, label: '1 m\u00eas', priceLabel: 'R$ 50,00' },
+  { id: '3m', months: 3, price: 120, label: '3 meses', priceLabel: 'R$ 120,00', featured: true },
+  { id: '6m', months: 6, price: 230, label: '6 meses', priceLabel: 'R$ 230,00' },
+];
+function planStatus(user) {
+  if (!user.trialStart) { user.trialStart = Date.now(); saveUser(user); }
+  const now = Date.now();
+  if (user.plan && user.plan.end && now < user.plan.end) {
+    return { active: true, kind: 'paid', end: user.plan.end, label: user.plan.label,
+             daysLeft: Math.ceil((user.plan.end - now) / DAY) };
+  }
+  const trialEnd = user.trialStart + TRIAL_DAYS * DAY;
+  if (now < trialEnd) {
+    return { active: true, kind: 'trial', end: trialEnd, daysLeft: Math.ceil((trialEnd - now) / DAY) };
+  }
+  return { active: false, kind: 'expired' };
+}
+function fmtDate(ts) { return new Date(ts).toLocaleDateString('pt-BR'); }
+
+// ---------- leitura automatica (extracao de texto) ----------
+if (window.pdfjsLib) {
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+}
+function readAsText(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsText(file);});}
+function readAsDataURL(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file);});}
+async function extractText(file, onProgress) {
+  const name = file.name.toLowerCase();
+  if (name.endsWith('.txt') || name.endsWith('.csv') || file.type.startsWith('text/')) return readAsText(file);
+  if (name.endsWith('.pdf') || file.type === 'application/pdf') return extractPdf(file, onProgress);
+  if (file.type.startsWith('image/')) return ocrImage(await readAsDataURL(file), onProgress);
+  return '';
+}
+async function extractPdf(file, onProgress) {
+  const buf = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+  let out = '';
+  for (let p = 1; p <= pdf.numPages; p++) {
+    const page = await pdf.getPage(p);
+    const content = await page.getTextContent();
+    let txt = content.items.map(i => i.str).join(' ');
+    if (!txt.trim()) {
+      const vp = page.getViewport({ scale: 2 });
+      const cv = $('#__pdfcanvas'); cv.width = vp.width; cv.height = vp.height;
+      await page.render({ canvasContext: cv.getContext('2d'), viewport: vp }).promise;
+      txt = await ocrImage(cv.toDataURL(), onProgress);
+    }
+    out += txt + '\n';
+  }
+  return out;
+}
+async function ocrImage(dataUrl, onProgress) {
+  if (!window.Tesseract) return '';
+  const res = await Tesseract.recognize(dataUrl, 'por+eng', {
+    logger: m => { if (onProgress && m.status === 'recognizing text') onProgress(m.progress); },
+  }).catch(() => Tesseract.recognize(dataUrl, 'eng'));
+  return res && res.data ? res.data.text : '';
+}
+// ---------- parsing ----------
+const RX_DATE = /(\d{2})[\/.\-](\d{2})[\/.\-](\d{4})|(\d{4})[\/.\-](\d{2})[\/.\-](\d{2})/;
+const RX_MONEY = /(?<![\d.,])(\d{1,3}(?:[.\s]\d{3})*,\d{2}|\d+\.\d{2}|\d+,\d{2})/g;
+function parseDate(text) {
+  const m = RX_DATE.exec(text); if (!m) return null;
+  if (m[1]) return m[3] + '-' + m[2] + '-' + m[1];
+  if (m[4]) return m[4] + '-' + m[5] + '-' + m[6];
+  return null;
+}
+function parseMoney(tok) {
+  let t = tok.trim();
+  if (t.includes(',') && (t.includes('.') || /,\d{2}$/.test(t))) t = t.replace(/\./g, '').replace(',', '.');
+  else t = t.replace(/,/g, '');
+  const v = parseFloat(t); return isNaN(v) ? null : Math.abs(v);
+}
+function parseLines(text) {
+  const docDate = parseDate(text);
+  const out = [];
+  for (let line of text.split(/\r?\n/)) {
+    line = line.trim(); if (line.length < 3) continue;
+    const monies = line.match(RX_MONEY); if (!monies) continue;
+    const amount = parseMoney(monies[monies.length - 1]);
+    if (!amount) continue;
+    const d = parseDate(line) || docDate;
+    let desc = line.replace(RX_MONEY, '').replace(RX_DATE, '').replace(/\s{2,}/g, ' ').replace(/^[\s\-|:]+|[\s\-|:]+$/g, '');
+    out.push({ date: d, description: (desc || 'Lancamento').slice(0, 200), amount });
+  }
+  return out;
+}
+// ---------- categorizacao ----------
+const TAX = ['das','darf','iss','icms','ipi','iptu','ipva','inss','fgts','pis','cofins','irpj','csll','irrf','simples nacional','tributo','imposto','taxa','guia','gps','gnre','vat','tax','duty'];
+const IN = ['venda','receita','recebimento','recebido','credito','deposito','pix recebido','ted recebida','entrada','fatura','servicos prestados','prestacao de servico','invoice','payment received','sale','revenue'];
+const OUT = ['pagamento','pago','compra','despesa','debito','saque','boleto','fornecedor','aluguel','salario','folha','tarifa','pix enviado','ted enviada','saida','purchase','expense','withdrawal'];
+function norm(s){ return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
+function has(t, arr){ return arr.some(w => new RegExp('\\b'+w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b').test(t)); }
+function categorize(desc, docType) {
+  const t = norm(desc);
+  if (has(t, TAX)) return 'tributo';
+  if (has(t, IN)) return 'entrada';
+  if (has(t, OUT)) return 'saida';
+  return docType === 'nota' ? 'entrada' : 'saida';
+}
+
+// ================= UI / ROUTER =================
+let route = 'dashboard';
+let chartRefs = [];
+function go(r) { route = r; render(); }
+
+function flashNode() {
+  if (!flashMsg) return null;
+  const n = el('div', { class: 'flash ' + flashMsg.type }, flashMsg.text);
+  flashMsg = null; return n;
+}
+
+function render() {
+  chartRefs.forEach(c => c.destroy()); chartRefs = [];
+  const app = $('#app'); app.innerHTML = '';
+  const user = currentUser();
+  if (!user) { app.append(authView()); return; }
+  const st = planStatus(user);
+  const openRoutes = ['plans', 'account'];
+  if (!st.active && !openRoutes.includes(route)) route = 'plans';
+  app.append(topbar(user, st));
+  const main = el('main');
+  const f = flashNode(); if (f) main.append(f);
+  const banner = planBanner(st); if (banner) main.append(banner);
+  if (route === 'plans') main.append(plansView(user, st));
+  else if (route === 'documents') main.append(documentsView(user));
+  else if (route === 'report') main.append(reportView(user));
+  else if (route === 'account') main.append(accountView(user));
+  else main.append(dashboardView(user));
+  app.append(main);
+  app.append(el('footer', { class: 'foot' }, 'TribuTax \u00b7 organizacao tributaria \u00b7 dados isolados por conta (neste navegador)'));
+  if (route === 'dashboard' && st.active) drawCharts(user);
+}
+
+function planBanner(st) {
+  if (st.kind === 'trial') {
+    const b = el('div', { class: 'banner trial' });
+    b.append(el('div', { style: 'flex:1' },
+      el('strong', {}, 'Voce esta no periodo gratuito de ' + TRIAL_DAYS + ' dias. '),
+      'Faltam ' + st.daysLeft + ' dia(s) (ate ' + fmtDate(st.end) + '). Sem cartao, sem compromisso \u2014 aproveite!'));
+    b.append(el('button', { class: 'btn primary', onclick: () => go('plans') }, 'Ver planos'));
+    return b;
+  }
+  if (st.kind === 'expired' && route === 'plans') {
+    const b = el('div', { class: 'banner expired' });
+    b.append(el('div', { style: 'flex:1' },
+      el('strong', {}, 'Seu periodo gratuito terminou. '),
+      'Esperamos que voce tenha gostado do TribuTax! \uD83D\uDE0A A partir de agora, para continuar organizando seus tributos, escolha um plano abaixo. \u00c9 rapidinho.'));
+    return b;
+  }
+  return null;
+}
+
+function topbar(user, st) {
+  const nav = el('nav');
+  const items = [['dashboard', 'Painel'], ['documents', 'Documentos'], ['report', 'Relatorio'], ['plans', 'Planos'], ['account', 'Conta']];
+  items.forEach(([r, label]) => nav.append(el('button', { class: route === r ? 'active' : '', onclick: () => go(r) }, label)));
+  nav.append(el('button', { class: 'logout', onclick: () => { DB.setSession(null); flash('Sessao encerrada.', 'info'); route = 'dashboard'; render(); } }, 'Sair'));
+  let badge = null;
+  if (st) {
+    if (st.kind === 'paid') badge = el('span', { class: 'plan-badge' }, st.label + ' \u00b7 ' + st.daysLeft + 'd');
+    else if (st.kind === 'trial') badge = el('span', { class: 'plan-badge warn' }, 'Gratis: ' + st.daysLeft + 'd');
+    else badge = el('span', { class: 'plan-badge exp' }, 'Plano expirado');
+  }
+  return el('header', { class: 'topbar' },
+    el('div', { class: 'brand', onclick: () => go('dashboard'), html: 'Tribu<span>Tax</span>' }),
+    nav,
+    badge || el('span'),
+    el('div', { class: 'who' }, user.company));
+}
+
+// ---------- auth view ----------
+let authMode = 'login';
+function authView() {
+  const wrap = el('div', { class: 'auth-wrap' });
+  const f = flashNode(); if (f) wrap.append(f);
+  const card = el('div', { class: 'card' });
+  card.append(el('h1', { class: 'logo', html: 'Tribu<span>Tax</span>' }));
+  card.append(el('p', { class: 'muted', style: 'text-align:center' }, 'Organizacao tributaria para a sua empresa.'));
+  if (authMode === 'login') card.append(loginForm());
+  else card.append(registerForm());
+  wrap.append(card);
+  return wrap;
+}
+
+function loginForm() {
+  const form = el('form');
+  const email = el('input', { type: 'email', required: 'required', placeholder: 'voce@empresa.com' });
+  const pass = el('input', { type: 'password', required: 'required' });
+  form.append(el('label', {}, 'E-mail', email), el('label', {}, 'Senha', pass));
+  form.append(el('button', { class: 'btn primary', type: 'submit' }, 'Entrar'));
+  form.append(el('p', { class: 'muted' }, 'Nao tem conta? ', el('a', { href: '#', onclick: (e) => { e.preventDefault(); authMode = 'register'; render(); } }, 'Criar conta')));
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const users = DB.users(); const u = users[email.value.trim().toLowerCase()];
+    const h = await sha256(pass.value);
+    if (!u || u.pass !== h) { flash('E-mail ou senha incorretos.', 'danger'); render(); return; }
+    DB.setSession(u.email); route = 'dashboard'; render();
+  });
+  return form;
+}
+
+function registerForm() {
+  const form = el('form');
+  const g = el('div', { class: 'grid2' });
+  const company = el('input', { required: 'required' });
+  const taxId = el('input', {});
+  const country = el('input', { value: 'BR' });
+  const acc = el('input', { type: 'email', placeholder: 'contador@contabilidade.com' });
+  const email = el('input', { type: 'email', required: 'required' });
+  const pass = el('input', { type: 'password', required: 'required' });
+  g.append(el('label', {}, 'Nome da empresa', company), el('label', {}, 'Identificacao fiscal (CNPJ/VAT/EIN)', taxId),
+    el('label', {}, 'Pais', country), el('label', {}, 'E-mail da contabilidade', acc),
+    el('label', {}, 'Seu e-mail de acesso', email), el('label', {}, 'Senha (min. 8)', pass));
+  form.append(g, el('button', { class: 'btn primary', type: 'submit' }, 'Criar conta'));
+  form.append(el('p', { class: 'muted' }, 'Ja tem conta? ', el('a', { href: '#', onclick: (e) => { e.preventDefault(); authMode = 'login'; render(); } }, 'Entrar')));
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const em = email.value.trim().toLowerCase();
+    if (pass.value.length < 8) { flash('A senha deve ter pelo menos 8 caracteres.', 'danger'); render(); return; }
+    const users = DB.users();
+    if (users[em]) { flash('Ja existe uma conta com este e-mail.', 'danger'); render(); return; }
+    users[em] = { email: em, company: company.value.trim(), taxId: taxId.value.trim(), country: country.value.trim() || 'BR', accountant: acc.value.trim().toLowerCase(), pass: await sha256(pass.value), trialStart: Date.now(), plan: null };
+    DB.saveUsers(users); DB.saveData(em, { docs: [], txs: [], seq: 1 });
+    DB.setSession(em); flash('Conta criada com sucesso. Bem-vindo(a)!', 'success'); route = 'dashboard'; render();
+  });
+  return form;
+}
+
+// ---------- helpers de dados ----------
+function totals(txs) {
+  const t = { entrada: 0, saida: 0, tributo: 0 };
+  txs.forEach(x => { t[x.category] = (t[x.category] || 0) + (x.amount || 0); });
+  return t;
+}
+
+// ---------- dashboard ----------
+function dashboardView(user) {
+  const d = DB.data(user.email);
+  const t = totals(d.txs);
+  const saldo = t.entrada - t.saida - t.tributo;
+  const frag = el('div');
+  frag.append(el('h1', { class: 'page-title' }, 'Situacao financeira'));
+  const kpis = el('div', { class: 'kpis' });
+  const mk = (cls, label, val) => el('div', { class: 'kpi ' + cls }, el('span', {}, label), el('strong', {}, money(val)));
+  kpis.append(mk('in', 'Entradas', t.entrada), mk('out', 'Saidas', t.saida), mk('tax', 'Tributos', t.tributo), mk('bal', 'Saldo', saldo));
+  frag.append(kpis);
+  const charts = el('div', { class: 'charts' });
+  charts.append(el('div', { class: 'card' }, el('h2', {}, 'Composicao'), el('canvas', { id: 'pie' })));
+  charts.append(el('div', { class: 'card' }, el('h2', {}, 'Evolucao mensal'), el('canvas', { id: 'bars' })));
+  frag.append(charts);
+  const card = el('div', { class: 'card' });
+  card.append(el('h2', {}, 'Lancamentos (leitura automatica + manuais)'));
+  if (!d.txs.length) {
+    card.append(el('p', { class: 'muted' }, 'Nenhum lancamento ainda. Va em Documentos e envie notas fiscais/extratos ou adicione um lancamento manual.'));
+  } else {
+    card.append(el('p', { class: 'muted' }, 'Clique em um lancamento para ver os detalhes, um por um.'));
+    const table = el('table', { class: 'table' });
+    table.innerHTML = '<thead><tr><th>Data</th><th>Descricao</th><th>Categoria</th><th class="r">Valor</th><th></th></tr></thead>';
+    const tb = el('tbody');
+    const sorted = [...d.txs].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+    sorted.forEach((x, i) => {
+      const sel = el('select', { class: 'cat' });
+      [['entrada', 'Entrada'], ['saida', 'Saida'], ['tributo', 'Tributo']].forEach(([v, l]) => {
+        const o = el('option', { value: v }, l); if (v === x.category) o.selected = true; sel.append(o);
+      });
+      sel.addEventListener('click', e => e.stopPropagation());
+      sel.addEventListener('change', () => {
+        const dd = DB.data(user.email); const tx = dd.txs.find(z => z.id === x.id);
+        if (tx) { tx.category = sel.value; DB.saveData(user.email, dd); render(); }
+      });
+      const view = el('button', { class: 'btn ghost sm' }, 'Ver');
+      view.addEventListener('click', e => { e.stopPropagation(); openTxDetail(user, sorted, i); });
+      const tr = el('tr', { class: 'clickable' });
+      tr.addEventListener('click', () => openTxDetail(user, sorted, i));
+      tr.append(el('td', {}, x.date ? x.date.split('-').reverse().join('/') : '-'),
+        el('td', {}, x.description), el('td', {}, sel),
+        el('td', { class: 'r' }, money(x.amount)), el('td', { class: 'r' }, view));
+      tb.append(tr);
+    });
+    table.append(tb); card.append(table);
+  }
+  frag.append(card);
+  return frag;
+}
+
+// ---------- detalhe de um lancamento (visualizacao um por um) ----------
+function openTxDetail(user, list, index) {
+  const root = $('#modal-root');
+  const x = list[index];
+  const labels = { entrada: 'Entrada', saida: 'Saida', tributo: 'Tributo' };
+  const colorVar = { entrada: 'var(--in)', saida: 'var(--out)', tributo: 'var(--tax)' };
+  const d = DB.data(user.email);
+  const doc = x.docId ? d.docs.find(z => z.id === x.docId) : null;
+
+  const close = () => { root.innerHTML = ''; };
+  const bg = el('div', { class: 'modal-bg', onclick: (e) => { if (e.target === bg) close(); } });
+  const modal = el('div', { class: 'modal' });
+
+  const head = el('div', { class: 'modal-head' });
+  head.append(el('h2', {}, 'Detalhe do lancamento'),
+    el('button', { class: 'close', onclick: close, title: 'Fechar' }, '\u00d7'));
+  modal.append(head);
+
+  modal.append(el('div', { class: 'pill ' + x.category, style: 'margin-bottom:8px' }, labels[x.category]));
+  modal.append(el('div', { class: 'big-val', style: 'color:' + colorVar[x.category] },
+    (x.category === 'entrada' ? '+ ' : '- ') + money(x.amount)));
+
+  const dl = el('div', { class: 'detail-list' });
+  const row = (k, v) => el('div', { class: 'row' }, el('span', { class: 'k' }, k), el('span', { class: 'v' }, v));
+  dl.append(
+    row('Descricao', x.description || '-'),
+    row('Data', x.date ? x.date.split('-').reverse().join('/') : 'Sem data'),
+    row('Categoria', labels[x.category]),
+    row('Valor', money(x.amount)),
+    row('Origem', x.manual ? 'Lancamento manual' : (doc ? 'Documento: ' + doc.name : 'Documento removido')),
+    row('Codigo', '#' + x.id)
+  );
+  modal.append(dl);
+
+  // navegacao um por um
+  const nav = el('div', { style: 'display:flex;gap:8px;align-items:center;justify-content:space-between' });
+  const prev = el('button', { class: 'btn ghost sm' }, '\u2190 Anterior');
+  const next = el('button', { class: 'btn ghost sm' }, 'Proximo \u2192');
+  prev.disabled = index <= 0; next.disabled = index >= list.length - 1;
+  if (prev.disabled) prev.style.opacity = .4; if (next.disabled) next.style.opacity = .4;
+  prev.addEventListener('click', () => { if (index > 0) openTxDetail(user, list, index - 1); });
+  next.addEventListener('click', () => { if (index < list.length - 1) openTxDetail(user, list, index + 1); });
+  nav.append(prev, el('span', { class: 'muted' }, (index + 1) + ' de ' + list.length), next);
+  modal.append(nav);
+
+  const actions = el('div', { style: 'margin-top:14px;display:flex;gap:8px' });
+  const del = el('button', { class: 'btn danger sm' }, 'Excluir lancamento');
+  del.addEventListener('click', () => {
+    if (!confirm('Excluir este lancamento?')) return;
+    const dd = DB.data(user.email); dd.txs = dd.txs.filter(z => z.id !== x.id);
+    DB.saveData(user.email, dd); close(); flash('Lancamento excluido.', 'info'); render();
+  });
+  actions.append(del, el('button', { class: 'btn sm', onclick: close }, 'Fechar'));
+  modal.append(actions);
+
+  bg.append(modal); root.innerHTML = ''; root.append(bg);
+}
+
+function drawCharts(user) {
+  const d = DB.data(user.email); const t = totals(d.txs);
+  if (window.Chart) { Chart.defaults.color = '#8b99ad'; Chart.defaults.borderColor = '#232f42'; }
+  const C = { in: '#34d399', out: '#f0888b', tax: '#e0b877' };
+  const legend = { labels: { color: '#c7d2e0' }, position: 'bottom' };
+  const pie = $('#pie');
+  if (pie) chartRefs.push(new Chart(pie, { type: 'doughnut',
+    data: { labels: ['Entradas', 'Saidas', 'Tributos'], datasets: [{ data: [t.entrada, t.saida, t.tributo], backgroundColor: [C.in, C.out, C.tax], borderColor: '#141c2a', borderWidth: 2 }] },
+    options: { plugins: { legend } } }));
+  const byMonth = {};
+  d.txs.forEach(x => { const k = x.date ? x.date.slice(0, 7) : 'sem-data'; (byMonth[k] = byMonth[k] || { entrada: 0, saida: 0, tributo: 0 })[x.category] += x.amount || 0; });
+  const months = Object.keys(byMonth).sort();
+  const bars = $('#bars');
+  if (bars) chartRefs.push(new Chart(bars, { type: 'bar',
+    data: { labels: months, datasets: [
+      { label: 'Entradas', data: months.map(m => byMonth[m].entrada), backgroundColor: C.in },
+      { label: 'Saidas', data: months.map(m => byMonth[m].saida), backgroundColor: C.out },
+      { label: 'Tributos', data: months.map(m => byMonth[m].tributo), backgroundColor: C.tax } ] },
+    options: { responsive: true, plugins: { legend: { position: 'bottom' } }, scales: { y: { beginAtZero: true } } } }));
+}
+
+// ---------- documentos (upload + leitura automatica) ----------
+function documentsView(user) {
+  const frag = el('div');
+  frag.append(el('h1', { class: 'page-title' }, 'Documentos'));
+  const up = el('div', { class: 'card' });
+  up.append(el('h2', {}, 'Enviar notas fiscais / extratos'));
+  up.append(el('p', { class: 'muted' }, 'Formatos: PDF, imagens (PNG/JPG), TXT e CSV. A leitura automatica (OCR) extrai os valores e classifica em entradas, saidas e tributos.'));
+  const typeSel = el('select', {}, el('option', { value: 'nota' }, 'Nota fiscal'), el('option', { value: 'extrato' }, 'Extrato bancario'));
+  const fileInput = el('input', { type: 'file', multiple: 'multiple', accept: '.pdf,.png,.jpg,.jpeg,.tiff,.bmp,.txt,.csv', class: 'hidden' });
+  const dz = el('div', { class: 'dropzone', onclick: () => fileInput.click() }, 'Clique para selecionar ou arraste os arquivos aqui');
+  ['dragover', 'dragenter'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('drag'); }));
+  ['dragleave', 'drop'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.remove('drag'); }));
+  const status = el('div', {});
+  dz.addEventListener('drop', e => handleFiles(user, e.dataTransfer.files, typeSel.value, status));
+  fileInput.addEventListener('change', () => handleFiles(user, fileInput.files, typeSel.value, status));
+  up.append(el('label', {}, 'Tipo de documento', typeSel), dz, fileInput, status);
+  frag.append(up);
+
+  frag.append(manualEntryCard(user));
+
+  const list = el('div', { class: 'card' });
+  list.append(el('h2', {}, 'Meus documentos'));
+  const d = DB.data(user.email);
+  if (!d.docs.length) list.append(el('p', { class: 'muted' }, 'Nenhum documento enviado ainda.'));
+  else {
+    const table = el('table', { class: 'table' });
+    table.innerHTML = '<thead><tr><th>Arquivo</th><th>Tipo</th><th>Status</th><th>Enviado</th><th></th></tr></thead>';
+    const tb = el('tbody');
+    d.docs.forEach(doc => {
+      const del = el('button', { class: 'btn danger sm' }, 'Excluir');
+      del.addEventListener('click', () => {
+        if (!confirm('Remover este documento e seus lancamentos?')) return;
+        const dd = DB.data(user.email);
+        dd.docs = dd.docs.filter(x => x.id !== doc.id);
+        dd.txs = dd.txs.filter(x => x.docId !== doc.id);
+        DB.saveData(user.email, dd); render();
+      });
+      const tr = el('tr');
+      tr.append(el('td', {}, doc.name), el('td', {}, doc.type === 'nota' ? 'Nota fiscal' : 'Extrato'),
+        el('td', {}, el('span', { class: 'badge ' + doc.status }, doc.status)),
+        el('td', {}, new Date(doc.at).toLocaleString('pt-BR')), el('td', {}, del));
+      tb.append(tr);
+    });
+    table.append(tb); list.append(table);
+  }
+  frag.append(list);
+  return frag;
+}
+
+function manualEntryCard(user) {
+  const card = el('div', { class: 'card' });
+  card.append(el('h2', {}, 'Adicionar lancamento manual'));
+  card.append(el('p', { class: 'muted' }, 'Registre manualmente uma entrada, saida ou tributo. A leitura automatica por upload continua funcionando normalmente.'));
+  const date = el('input', { type: 'date', value: new Date().toISOString().slice(0, 10) });
+  const desc = el('input', { placeholder: 'Ex.: Venda de produto, DARF, Aluguel...' });
+  const cat = el('select', {}, el('option', { value: 'entrada' }, 'Entrada'), el('option', { value: 'saida' }, 'Saida'), el('option', { value: 'tributo' }, 'Tributo'));
+  const amount = el('input', { type: 'number', step: '0.01', min: '0', placeholder: '0,00' });
+  const g = el('div', { class: 'grid2' });
+  g.append(el('label', {}, 'Data', date), el('label', {}, 'Categoria', cat),
+    el('label', {}, 'Descricao', desc), el('label', {}, 'Valor (R$)', amount));
+  const btn = el('button', { class: 'btn primary' }, 'Adicionar lancamento');
+  const msg = el('span', { style: 'margin-left:10px' });
+  btn.addEventListener('click', () => {
+    const val = parseFloat(String(amount.value).replace(',', '.'));
+    if (!desc.value.trim()) { msg.className = 'flash danger'; msg.textContent = 'Informe a descricao.'; return; }
+    if (isNaN(val) || val <= 0) { msg.className = 'flash danger'; msg.textContent = 'Informe um valor valido.'; return; }
+    const dd = DB.data(user.email);
+    dd.txs.push({ id: dd.seq++, docId: null, manual: true, date: date.value || null, description: desc.value.trim().slice(0, 200), category: cat.value, amount: Math.abs(val) });
+    DB.saveData(user.email, dd);
+    flash('Lancamento manual adicionado.', 'success'); render();
+  });
+  card.append(g, el('div', {}, btn, msg));
+  return card;
+}
+
+async function handleFiles(user, fileList, docType, status) {
+  const files = [...fileList]; if (!files.length) return;
+  for (const file of files) {
+    const row = el('div', { class: 'flash info' }, el('span', { class: 'spin' }), ' Processando ' + esc(file.name) + '... ');
+    const pct = el('span', {}); row.append(pct); status.append(row);
+    try {
+      const text = await extractText(file, p => { pct.textContent = Math.round(p * 100) + '%'; });
+      const lines = parseLines(text || '');
+      const dd = DB.data(user.email);
+      const docId = dd.seq++;
+      let dataUrl = '';
+      try { dataUrl = await readAsDataURL(file); } catch (e) {}
+      dd.docs.unshift({ id: docId, name: file.name, type: docType, status: 'processado', at: Date.now(), dataUrl });
+      lines.forEach(ln => dd.txs.push({ id: dd.seq++, docId, date: ln.date, description: ln.description, category: categorize(ln.description, docType), amount: ln.amount }));
+      DB.saveData(user.email, dd);
+      row.className = 'flash success';
+      row.textContent = file.name + ': ' + lines.length + ' lancamento(s) lidos.';
+    } catch (err) {
+      row.className = 'flash danger';
+      row.textContent = 'Erro ao processar ' + file.name + '.';
+    }
+  }
+  setTimeout(render, 900);
+}
+
+// ---------- relatorio (.zip com PDF + notas) ----------
+function reportView(user) {
+  const frag = el('div');
+  frag.append(el('h1', { class: 'page-title' }, 'Relatorio para a contabilidade'));
+  const card = el('div', { class: 'card' });
+  card.append(el('p', { class: 'muted' }, 'Gera um pacote .zip com o relatorio em PDF (resumo + lancamentos) e as notas fiscais originais anexadas na pasta notas/. Pronto para enviar a sua contabilidade.'));
+  const start = el('input', { type: 'date' });
+  const end = el('input', { type: 'date' });
+  const g = el('div', { class: 'grid2' });
+  g.append(el('label', {}, 'Data inicial', start), el('label', {}, 'Data final', end));
+  const btn = el('button', { class: 'btn primary' }, 'Gerar pacote (.zip)');
+  btn.addEventListener('click', () => generateReport(user, start.value, end.value, card));
+  card.append(g, el('p', { class: 'muted' }, 'Deixe em branco para incluir todo o periodo.'), btn);
+  if (user.accountant) card.append(el('p', { class: 'muted' }, 'Contabilidade cadastrada: ' + user.accountant));
+  frag.append(card);
+  return frag;
+}
+
+async function generateReport(user, start, end, card) {
+  const d = DB.data(user.email);
+  let txs = [...d.txs];
+  if (start) txs = txs.filter(x => x.date && x.date >= start);
+  if (end) txs = txs.filter(x => x.date && x.date <= end);
+  txs.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+  const t = totals(txs);
+  const saldo = t.entrada - t.saida - t.tributo;
+  const docIds = new Set(txs.map(x => x.docId));
+  const docs = d.docs.filter(x => docIds.has(x.id));
+  const jsPDF = window.jspdf.jsPDF;
+  const pdf = new jsPDF({ unit: 'pt', format: 'a4' });
+  const M = 40; let y = 54;
+  pdf.setTextColor('#1f6feb'); pdf.setFontSize(20); pdf.text('Relatorio Tributario', M, y); y += 18;
+  pdf.setTextColor('#666'); pdf.setFontSize(9); pdf.text('Gerado por TribuTax para envio a contabilidade', M, y); y += 22;
+  pdf.setTextColor('#333'); pdf.setFontSize(10);
+  const period = (start || 'inicio') + ' a ' + (end || 'hoje');
+  [['Empresa', user.company], ['Identificacao fiscal', user.taxId || '-'], ['Pais', user.country || '-'], ['Periodo', period], ['Contabilidade', user.accountant || '-']]
+    .forEach(([k, v]) => { pdf.setTextColor('#888'); pdf.text(k, M, y); pdf.setTextColor('#222'); pdf.text(String(v), M + 130, y); y += 15; });
+  y += 10; pdf.setFontSize(11); pdf.setTextColor('#1f6feb');
+  pdf.text('Entradas: ' + money(t.entrada) + '   Saidas: ' + money(t.saida), M, y); y += 15;
+  pdf.text('Tributos: ' + money(t.tributo) + '   Saldo: ' + money(saldo), M, y); y += 24;
+  pdf.setTextColor('#222'); pdf.setFontSize(12); pdf.text('Lancamentos', M, y); y += 16; pdf.setFontSize(8);
+  const labels = { entrada: 'Entrada', saida: 'Saida', tributo: 'Tributo' };
+  if (!txs.length) { pdf.text('Nenhum lancamento no periodo.', M, y); y += 14; }
+  txs.forEach(x => {
+    if (y > 780) { pdf.addPage(); y = 54; }
+    const dt = x.date ? x.date.split('-').reverse().join('/') : '-';
+    pdf.text(dt, M, y); pdf.text((x.description || '').slice(0, 55), M + 70, y);
+    pdf.text(labels[x.category], M + 360, y); pdf.text(money(x.amount), M + 460, y, { align: 'left' }); y += 13;
+  });
+  y += 10; if (y > 760) { pdf.addPage(); y = 54; }
+  pdf.setFontSize(12); pdf.text('Documentos anexados', M, y); y += 15; pdf.setFontSize(8);
+  docs.forEach((doc, i) => { if (y > 790) { pdf.addPage(); y = 54; } pdf.text((i + 1) + '. ' + doc.name + '  (' + (doc.type === 'nota' ? 'Nota fiscal' : 'Extrato') + ')', M, y); y += 12; });
+  const pdfBlob = pdf.output('blob');
+  const zip = new JSZip();
+  zip.file('relatorio.pdf', pdfBlob);
+  const notas = zip.folder('notas');
+  docs.forEach(doc => { if (doc.dataUrl) { const b64 = doc.dataUrl.split(',')[1]; if (b64) notas.file(doc.name, b64, { base64: true }); } });
+  const blob = await zip.generateAsync({ type: 'blob' });
+  const a = el('a', { href: URL.createObjectURL(blob), download: 'relatorio-tributax-' + new Date().toISOString().slice(0, 10) + '.zip' });
+  document.body.append(a); a.click(); a.remove();
+  const ok = el('div', { class: 'flash success' }, 'Pacote gerado e baixado (' + txs.length + ' lancamentos, ' + docs.length + ' anexos).');
+  card.append(ok);
+}
+
+// ---------- planos ----------
+let checkoutPlan = null;
+function plansView(user, st) {
+  const frag = el('div');
+  frag.append(el('h1', { class: 'page-title' }, 'Planos'));
+
+  // status atual
+  const info = el('div', { class: 'card' });
+  if (st.kind === 'paid') {
+    info.append(el('p', {}, el('strong', {}, 'Plano ativo: ' + st.label + '. '),
+      'Valido ate ' + fmtDate(st.end) + ' (' + st.daysLeft + ' dia(s) restantes).'));
+  } else if (st.kind === 'trial') {
+    info.append(el('div', { class: 'trial-box' },
+      el('strong', {}, 'Voce esta no periodo gratuito de ' + TRIAL_DAYS + ' dias. '),
+      'Faltam ' + st.daysLeft + ' dia(s). Nao e preciso cadastrar cartao agora \u2014 so quando decidir assinar.'));
+  } else {
+    info.append(el('p', {}, el('strong', {}, 'Seu periodo gratuito terminou. '),
+      'Escolha um dos planos abaixo para continuar usando o TribuTax. Voce so paga quando assinar. \uD83D\uDE0A'));
+  }
+  frag.append(info);
+
+  if (checkoutPlan) { frag.append(checkoutCard(user)); return frag; }
+
+  // grade de planos
+  const grid = el('div', { class: 'plans-grid' });
+  PLANS.forEach(p => {
+    const perMonth = (p.price / p.months);
+    const card = el('div', { class: 'plan' + (p.featured ? ' featured' : '') });
+    if (p.featured) card.append(el('div', { class: 'tag' }, 'MAIS POPULAR'));
+    card.append(el('h3', {}, 'Plano ' + p.label));
+    card.append(el('div', { class: 'period' }, p.months + ' ' + (p.months === 1 ? 'mes' : 'meses') + ' de acesso'));
+    card.append(el('div', { class: 'price', html: p.priceLabel.replace('R$', '<small>R$</small>') }));
+    card.append(el('div', { class: 'permo' }, 'equivale a ' + money(perMonth) + '/mes'));
+    const ul = el('ul');
+    ['Leitura automatica (OCR) ilimitada', 'Lancamentos manuais', 'Graficos da situacao financeira', 'Relatorio .zip para a contabilidade', 'Dados isolados da sua empresa']
+      .forEach(f => ul.append(el('li', {}, f)));
+    card.append(ul);
+    const btn = el('button', { class: 'btn ' + (p.featured ? 'primary' : ''), onclick: () => { checkoutPlan = p.id; render(); } }, 'Assinar ' + p.label);
+    if (!p.featured) btn.className = 'btn primary';
+    card.append(btn);
+    grid.append(card);
+  });
+  frag.append(grid);
+  frag.append(el('p', { class: 'muted', style: 'text-align:center' }, 'Pagamento simulado (demonstracao). Numa versao real, a cobranca do cartao seria processada por um gateway seguro (ex.: Stripe/Mercado Pago).'));
+  return frag;
+}
+
+function luhn(num) {
+  const s = num.replace(/\D/g, ''); if (s.length < 13) return false;
+  let sum = 0, alt = false;
+  for (let i = s.length - 1; i >= 0; i--) {
+    let d = parseInt(s[i], 10);
+    if (alt) { d *= 2; if (d > 9) d -= 9; }
+    sum += d; alt = !alt;
+  }
+  return sum % 10 === 0;
+}
+
+function checkoutCard(user) {
+  const p = PLANS.find(x => x.id === checkoutPlan);
+  const card = el('div', { class: 'card' });
+  card.append(el('h2', {}, 'Pagamento \u2014 Plano ' + p.label + ' (' + p.priceLabel + ')'));
+
+  const preview = el('div', { class: 'cc-preview' });
+  const pvNum = el('div', { class: 'num' }, '\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022');
+  const pvName = el('span', {}, 'NOME NO CARTAO');
+  const pvExp = el('span', {}, 'MM/AA');
+  preview.append(el('div', {}, 'TribuTax'), pvNum, el('div', { class: 'row' }, pvName, pvExp));
+  card.append(preview);
+
+  const name = el('input', { placeholder: 'Como impresso no cartao' });
+  const number = el('input', { placeholder: '0000 0000 0000 0000', inputmode: 'numeric', maxlength: '19' });
+  const exp = el('input', { placeholder: 'MM/AA', maxlength: '5' });
+  const cvv = el('input', { placeholder: '123', inputmode: 'numeric', maxlength: '4' });
+  number.addEventListener('input', () => {
+    let v = number.value.replace(/\D/g, '').slice(0, 16).replace(/(.{4})/g, '$1 ').trim();
+    number.value = v; pvNum.textContent = v || '\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022';
+  });
+  exp.addEventListener('input', () => {
+    let v = exp.value.replace(/\D/g, '').slice(0, 4);
+    if (v.length >= 3) v = v.slice(0, 2) + '/' + v.slice(2);
+    exp.value = v; pvExp.textContent = v || 'MM/AA';
+  });
+  name.addEventListener('input', () => pvName.textContent = (name.value || 'NOME NO CARTAO').toUpperCase());
+
+  const g = el('div', { class: 'grid2' });
+  g.append(el('label', { style: 'grid-column:1/-1' }, 'Nome no cartao', name),
+    el('label', { style: 'grid-column:1/-1' }, 'Numero do cartao', number),
+    el('label', {}, 'Validade', exp), el('label', {}, 'CVV', cvv));
+  card.append(g);
+
+  const msg = el('div', {});
+  const pay = el('button', { class: 'btn primary' }, 'Pagar ' + p.priceLabel + ' e ativar');
+  const back = el('button', { class: 'btn', onclick: () => { checkoutPlan = null; render(); } }, 'Voltar aos planos');
+  pay.addEventListener('click', () => {
+    if (!name.value.trim()) { msg.className = 'flash danger'; msg.textContent = 'Informe o nome no cartao.'; return; }
+    if (!luhn(number.value)) { msg.className = 'flash danger'; msg.textContent = 'Numero de cartao invalido.'; return; }
+    if (!/^\d{2}\/\d{2}$/.test(exp.value)) { msg.className = 'flash danger'; msg.textContent = 'Validade invalida (MM/AA).'; return; }
+    if (!/^\d{3,4}$/.test(cvv.value)) { msg.className = 'flash danger'; msg.textContent = 'CVV invalido.'; return; }
+    const now = new Date();
+    const end = new Date(now); end.setMonth(end.getMonth() + p.months);
+    user.plan = { id: p.id, label: p.label, price: p.price, start: now.getTime(), end: end.getTime(), last4: number.value.replace(/\D/g, '').slice(-4) };
+    saveUser(user);
+    checkoutPlan = null; route = 'dashboard';
+    flash('Pagamento aprovado! Plano ' + p.label + ' ativo ate ' + fmtDate(user.plan.end) + '. Obrigado por assinar. \uD83C\uDF89', 'success');
+    render();
+  });
+  card.append(msg, el('div', {}, pay, ' ', back));
+  card.append(el('p', { class: 'secure-note' }, '\uD83D\uDD12 Demonstracao: nenhum cartao e cobrado ou armazenado de verdade. Nao insira dados reais. Em producao, use um gateway certificado PCI-DSS.'));
+  return card;
+}
+
+// ---------- conta ----------
+function accountView(user) {
+  const frag = el('div');
+  frag.append(el('h1', { class: 'page-title' }, 'Dados da conta'));
+  const card = el('div', { class: 'card' });
+  const company = el('input', { value: user.company });
+  const taxId = el('input', { value: user.taxId || '' });
+  const country = el('input', { value: user.country || '' });
+  const acc = el('input', { type: 'email', value: user.accountant || '' });
+  const g = el('div', { class: 'grid2' });
+  g.append(el('label', {}, 'Nome da empresa', company), el('label', {}, 'Identificacao fiscal', taxId),
+    el('label', {}, 'Pais', country), el('label', {}, 'E-mail da contabilidade', acc));
+  const btn = el('button', { class: 'btn primary' }, 'Salvar');
+  btn.addEventListener('click', () => {
+    const users = DB.users(); const u = users[user.email];
+    u.company = company.value.trim() || u.company; u.taxId = taxId.value.trim();
+    u.country = country.value.trim(); u.accountant = acc.value.trim().toLowerCase();
+    DB.saveUsers(users); flash('Dados da conta atualizados.', 'success'); render();
+  });
+  card.append(g, btn, el('p', { class: 'muted' }, 'E-mail de acesso: ' + user.email));
+  const st = planStatus(user);
+  const planTxt = st.kind === 'paid' ? ('Plano ' + st.label + ' ativo ate ' + fmtDate(st.end))
+    : st.kind === 'trial' ? ('Periodo gratuito \u2014 ' + st.daysLeft + ' dia(s) restantes')
+    : 'Sem plano ativo';
+  card.append(el('p', { class: 'muted' }, 'Assinatura: ' + planTxt + '. ',
+    el('a', { href: '#', onclick: (e) => { e.preventDefault(); go('plans'); } }, 'Ver planos')));
+  frag.append(card);
+  return frag;
+}
+
+// ---------- instalar como app (PWA leve, sem servidor) ----------
+let deferredPrompt = null;
+function setupInstall() {
+  // manifest gerado em memoria (Blob) — funciona ao abrir o arquivo localmente
+  try {
+    const icon = 'data:image/svg+xml;base64,' + btoa(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192">' +
+      '<rect width="192" height="192" rx="36" fill="#0d1420"/>' +
+      '<text x="50%" y="54%" font-family="Arial" font-size="92" font-weight="bold" ' +
+      'fill="#2dd4bf" text-anchor="middle" dominant-baseline="middle">T</text></svg>');
+    const manifest = {
+      name: 'TribuTax', short_name: 'TribuTax',
+      description: 'Organizacao tributaria para a sua empresa',
+      display: 'standalone', background_color: '#0d1420', theme_color: '#0d1420',
+      icons: [{ src: icon, sizes: '192x192', type: 'image/svg+xml' },
+              { src: icon, sizes: '512x512', type: 'image/svg+xml' }],
+    };
+    const url = URL.createObjectURL(new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' }));
+    const link = document.createElement('link');
+    link.rel = 'manifest'; link.href = url; document.head.append(link);
+  } catch (e) { /* ambiente sem suporte a Blob/manifest — segue sem PWA */ }
+
+  const fab = el('button', { class: 'btn primary install-fab', title: 'Instalar o TribuTax como aplicativo' }, '\u2b07 Instalar app');
+  fab.style.display = 'none';
+  fab.addEventListener('click', async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const choice = await deferredPrompt.userChoice.catch(() => null);
+      deferredPrompt = null; fab.style.display = 'none';
+      if (choice && choice.outcome === 'accepted') { flash('TribuTax instalado! Abra pelo icone do aplicativo.', 'success'); render(); }
+    } else {
+      alert('Para instalar: no Chrome/Edge use o menu \u22ee \u2192 "Instalar TribuTax" (ou o icone de instalar na barra de enderecos). No celular, use "Adicionar a tela inicial".');
+    }
+  });
+  document.body.append(fab);
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault(); deferredPrompt = e; fab.style.display = '';
+  });
+  window.addEventListener('appinstalled', () => { fab.style.display = 'none'; deferredPrompt = null; });
+}
+
+// ---------- init ----------
+document.addEventListener('DOMContentLoaded', () => { render(); setupInstall(); });
+
+</script>
+</body>
+</html>
